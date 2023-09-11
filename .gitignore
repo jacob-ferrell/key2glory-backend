@@ -5,7 +5,7 @@ target/
 !**/src/test/**/target/
 !**/src/main/frontend/
 !**/src/main/resources/application.properties
-src/main/frontend
+src/main/frontend/**
 
 
 ### STS ###
