@@ -2,11 +2,15 @@ package com.jacobferrell.Key2Glory.dto;
 
 import com.jacobferrell.Key2Glory.model.Score;
 
+import java.util.List;
+
 public class ScoreDTO {
     private Long id;
     private double wpm;
     private double accuracy;
     private double time;
+    private double overallScore;
+    private List<Character> missedCharacters;
     private String username;
     private Long typingTest;
     private String createdAt;
@@ -19,6 +23,8 @@ public class ScoreDTO {
         this.username = score.getUsername();
         this.typingTest = score.getTypingTest().getId();
         this.createdAt = score.getCreatedAt();
+        this.overallScore = score.getOverallScore();
+        this.missedCharacters = score.getMissedCharacters();
     }
 
     public ScoreDTO() { }
@@ -41,6 +47,14 @@ public class ScoreDTO {
 
     public double getTime() {
         return time;
+    }
+
+    public double getOverallScore() {
+        return overallScore;
+    }
+
+    public List<Character> getMissedCharacters() {
+        return missedCharacters;
     }
 
     public String getUsername() {

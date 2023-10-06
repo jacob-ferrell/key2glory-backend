@@ -4,9 +4,10 @@ import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.text.DecimalFormat;
+import java.util.List;
 
 @Entity
-@Table(name="scores")
+@Table(name="score")
 public class Score {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,11 +28,14 @@ public class Score {
 
     @Column(nullable = false, name="accuracy")
     private double accuracy;
+    @Column(name="overall_score")
+    private double overallScore;
 
     @CreationTimestamp
     @Column(nullable = false, name="created_at")
     private String createdAt;
-    private Long errorsCount;
+    @Column(name="missed_characters")
+    private List<Character> missedCharacters;
     public Score() {
 
     }
@@ -48,16 +52,26 @@ public class Score {
         this.typingTest = session.getTypingTest();
         this.username = session.getUsername();
         this.time = session.getEndTime() - session.getStartTime();
-        this.errorsCount = session.getErrors();
+        this.missedCharacters = session.getMissedCharacters();
         this.wpm = calcWPM(df);
         this.accuracy = calcAccuracy(df);
+        this.overallScore = calcOverallScore(df);
     }
     private Double calcWPM(DecimalFormat df) {
-        return Double.parseDouble(df.format((double) typingTest.getWordsCount() / 5 / (time / 1000 / 60)));
+        double timeInSeconds = time / 1000;
+        double timeInMinutes = timeInSeconds / 60;
+        return Double.parseDouble(df.format((double) typingTest.getWordsCount() / timeInMinutes));
     }
     private Double calcAccuracy(DecimalFormat df) {
-        return Double.parseDouble(df.format(((typingTest.getText().length() - errorsCount) / typingTest.getText().length()) * 100));
+        long charactersCount = typingTest.getText().length();
+        long correctKeyPresses = charactersCount - missedCharacters.size();
+        return Double.parseDouble(df.format((double) correctKeyPresses / charactersCount * 100));
     }
+    private Double calcOverallScore(DecimalFormat df) {
+        return Double.parseDouble(df.format(wpm * (accuracy / 100)));
+    }
+
+
     public Long getId() {
         return id;
     }
@@ -80,6 +94,14 @@ public class Score {
 
     public double getAccuracy() {
         return accuracy;
+    }
+
+    public double getOverallScore() {
+        return overallScore;
+    }
+
+    public List<Character> getMissedCharacters() {
+        return missedCharacters;
     }
 
     public void setUsername(String nickname) {
