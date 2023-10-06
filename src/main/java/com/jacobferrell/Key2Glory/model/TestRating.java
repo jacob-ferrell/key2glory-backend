@@ -3,6 +3,7 @@ package com.jacobferrell.Key2Glory.model;
 import jakarta.persistence.*;
 
 @Entity
+@Table(name="test_rating")
 public class TestRating {
     @Id
     @GeneratedValue
