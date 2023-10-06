@@ -3,7 +3,11 @@ package com.jacobferrell.Key2Glory.model;
 import com.jacobferrell.Key2Glory.util.DateTime;
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
+@Table(name="test_session")
 public class TestSession {
     @Id
     @GeneratedValue
@@ -18,18 +22,18 @@ public class TestSession {
     private Long startTime;
     @Column(name="end_time")
     private Long endTime;
-    @Column(name="errors")
-    private Long errors;
+    @Column(name="missed_characters")
+    private List<Character> missedCharacters;
 
     public TestSession(TypingTest typingTest, String username) {
         this.typingTest = typingTest;
         this.username = username;
         this.startTime = new DateTime().toMillis();
     }
-    public TestSession(Long endTime, Long errors) {
+    public TestSession(Long endTime, List<Character> missedCharacters) {
         this.startTime = 0L;
         this.endTime = endTime;
-        this.errors = errors;
+        this.missedCharacters = missedCharacters;
     }
     public TestSession(Long startTime) {
         this.startTime = startTime;
@@ -67,12 +71,12 @@ public class TestSession {
         this.endTime = endTime;
     }
 
-    public Long getErrors() {
-        return errors;
+    public List<Character> getMissedCharacters() {
+        return missedCharacters;
     }
 
-    public void setErrors(Long errors) {
-        this.errors = errors;
+    public void setMissedCharacters(List<Character> missedCharacters) {
+        this.missedCharacters = missedCharacters;
     }
 
     public void setUsername(String username) {
@@ -81,5 +85,10 @@ public class TestSession {
 
     public void setTypingTest(TypingTest typingTest) {
         this.typingTest = typingTest;
+    }
+    public void restartSession(Long startTime) {
+        this.startTime = startTime;
+        this.endTime = null;
+        this.missedCharacters = new ArrayList<>();
     }
 }
