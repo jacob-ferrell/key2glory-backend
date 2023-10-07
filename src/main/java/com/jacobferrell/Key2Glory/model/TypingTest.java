@@ -7,18 +7,20 @@ import java.util.List;
 
 
 @Entity
-@Table(name="typing_tests")
+@Table(name="typing_test")
 public class TypingTest {
     @Id
     @GeneratedValue
     private Long id;
     @Column(nullable = false, name="text")
-    private final String text;
+    private String text;
     @Column(name="created_by")
     private String createdBy;
 
     @Column(name="rating")
     private Double rating;
+    @Column(name="type")
+    private TypingTestType type;
 
     @OneToMany(mappedBy="typingTest", cascade = CascadeType.ALL)
     private List<Score> scores = new ArrayList<>();
@@ -34,6 +36,19 @@ public class TypingTest {
         this.text = text;
         this.createdBy = "Key2Glory";
         this.wordsCount = calcWordsCount(text);
+        this.type = TypingTestType.CUSTOM;
+    }
+    public TypingTest(String text, TypingTestType type) {
+        this.text = text;
+        this.createdBy = "Key2Glory";
+        this.wordsCount = calcWordsCount(text);
+        this.type = type;
+    }
+    public TypingTest(String text, String createdBy, TypingTestType type) {
+        this.text = text;
+        this.createdBy = createdBy;
+        this.wordsCount = calcWordsCount(text);
+        this.type = type;
     }
     public TypingTest(String text, String createdBy) {
         this.text = text;
@@ -50,6 +65,7 @@ public class TypingTest {
     public String getText() {
         return text;
     }
+    public void setText(String text) { this.text = text;}
 
     public List<Score> getScores() {
         return scores;
@@ -97,6 +113,15 @@ public class TypingTest {
     public Long getWordsCount() {
         return wordsCount;
     }
+
+    public TypingTestType getType() {
+        return type;
+    }
+
+    public void setType(TypingTestType type) {
+        this.type = type;
+    }
+
 
     public boolean textLengthValid() {
         assert text != null;

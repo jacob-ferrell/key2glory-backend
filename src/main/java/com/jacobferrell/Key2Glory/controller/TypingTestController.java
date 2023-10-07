@@ -33,4 +33,12 @@ public class TypingTestController {
     ) {
         return service.createTypingTest(jwt, typingTest);
     }
+    @PutMapping("/private/typing-test/{id}")
+    public ResponseEntity<?> updateTypingTest(
+            @PathVariable Long id,
+            @RequestBody TypingTest typingTest,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        return service.updateTypingTest(id, typingTest, jwt);
+    }
 }

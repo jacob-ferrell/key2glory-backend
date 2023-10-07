@@ -2,6 +2,7 @@ package com.jacobferrell.Key2Glory.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.jacobferrell.Key2Glory.model.TypingTest;
+import com.jacobferrell.Key2Glory.model.TypingTestType;
 import com.jacobferrell.Key2Glory.repository.ScoreRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -13,8 +14,10 @@ public class TypingTestDTO {
     private final int ratings;
     private final Double rating;
     private final String createdBy;
+    private final TypingTestType type;
     private Double currentUserRating;
     private ScoreDTO highScore;
+    private ScoreDTO currentUserHighScore;
     private Long wordsCount;
     public TypingTestDTO(TypingTest test) {
         this.id = test.getId();
@@ -23,6 +26,7 @@ public class TypingTestDTO {
         this.rating = test.getRating();
         this.createdBy = test.getCreatedBy();
         this.wordsCount = test.getWordsCount();
+        this.type = test.getType();
         //this.highScore = new ScoreDTO(repository.findHighScores(test.getId(), PageRequest.of(0, 1)).orElseThrow().get(0));
     }
 
@@ -54,7 +58,24 @@ public class TypingTestDTO {
         return currentUserRating;
     }
 
+
     public void setCurrentUserRating(Double currentUserRating) {
         this.currentUserRating = currentUserRating;
+    }
+
+    public void setHighScore(ScoreDTO highScore) {
+        this.highScore = highScore;
+    }
+
+    public TypingTestType getType() {
+        return type;
+    }
+
+    public ScoreDTO getCurrentUserHighScore() {
+        return currentUserHighScore;
+    }
+
+    public void setCurrentUserHighScore(ScoreDTO currentUserHighScore) {
+        this.currentUserHighScore = currentUserHighScore;
     }
 }
