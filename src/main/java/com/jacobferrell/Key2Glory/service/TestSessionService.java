@@ -94,6 +94,7 @@ public class TestSessionService {
         var score = new Score(existingSession);
         var scores = test.getScores();
         scores.add(score);
+        test.setScoresCount((long) scores.size());
         scoreRepository.save(score);
         repository.save(test);
         return new ScoreDTO(score);
