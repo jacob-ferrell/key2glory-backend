@@ -18,6 +18,7 @@ public class TypingTestDTO {
     private Double currentUserRating;
     private ScoreDTO highScore;
     private ScoreDTO currentUserHighScore;
+    private Long scoresCount;
     private Long wordsCount;
     public TypingTestDTO(TypingTest test) {
         this.id = test.getId();
@@ -27,6 +28,7 @@ public class TypingTestDTO {
         this.createdBy = test.getCreatedBy();
         this.wordsCount = test.getWordsCount();
         this.type = test.getType();
+        this.scoresCount = test.getScoresCount();
         //this.highScore = new ScoreDTO(repository.findHighScores(test.getId(), PageRequest.of(0, 1)).orElseThrow().get(0));
     }
 
@@ -69,6 +71,10 @@ public class TypingTestDTO {
 
     public TypingTestType getType() {
         return type;
+    }
+
+    public Long getScoresCount() {
+        return scoresCount;
     }
 
     public ScoreDTO getCurrentUserHighScore() {
