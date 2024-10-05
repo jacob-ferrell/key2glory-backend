@@ -38,6 +38,9 @@ public class ScoreService {
         return scores.stream().map(ScoreDTO::new).toList();
     }
 
+
+
+
     public ResponseEntity<?> addScore(Long id, Score score, Jwt jwt) {
         TypingTest typingTest = typingTestRepository.findById(id).orElseThrow();
         String username = jwt.getClaim("username");
@@ -47,6 +50,7 @@ public class ScoreService {
         List<Score> prevScores = typingTest.getScores();
         prevScores.add(score);
         typingTest.setScores(prevScores);
+        typingTest.setScoresCount((long) prevScores.size());
         typingTestRepository.save(typingTest);
         return ResponseEntity
                 .created(URI.create("/api/private/score/" + score.getId()))
