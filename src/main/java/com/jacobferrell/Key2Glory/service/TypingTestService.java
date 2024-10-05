@@ -2,10 +2,12 @@ package com.jacobferrell.Key2Glory.service;
 
 import com.jacobferrell.Key2Glory.dto.ScoreDTO;
 import com.jacobferrell.Key2Glory.dto.TypingTestDTO;
+import com.jacobferrell.Key2Glory.dto.TypingTestSortAndFilterDTO;
 import com.jacobferrell.Key2Glory.model.*;
 import com.jacobferrell.Key2Glory.repository.TypingTestRepository;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -39,7 +41,7 @@ public class TypingTestService {
         if (!typingTest.textLengthValid()) {
             return ResponseEntity
                     .badRequest()
-                    .body(ErrorMessage.from("Text must within 30 - 3000 characters"));
+                    .body(ErrorMessage.from("Text must be within 30 - 3000 characters"));
         }
         String username = jwt.getClaim("username");
         typingTest.setCreatedBy(username);
@@ -69,6 +71,14 @@ public class TypingTestService {
                 .map(TestRating::getRating)
                 .orElse(null);
     }
+
+    public ResponseEntity<?> getTests(TypingTestSortAndFilterDTO params) {
+        System.out.println("creators " + params.getCreators());
+        System.out.println("types " + params.getTypes());
+        Page<TypingTest> resultPage = repository.findAll(params.createSpecification(), params.getPageRequest());
+        return ResponseEntity.ok().body(resultPage.map(TypingTestDTO::new));
+    }
+
     public ResponseEntity<?> updateTypingTest(Long id, TypingTest typingTest, Jwt jwt) {
         TypingTest existingTest = repository.findById(id).orElseThrow();
         String username = jwt.getClaim("username");
