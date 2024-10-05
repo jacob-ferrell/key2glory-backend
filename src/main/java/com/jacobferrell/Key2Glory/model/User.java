@@ -11,6 +11,7 @@ public class User {
     private String locale;
     private String updated_at;
     private String email;
+    private Integer averageWPM = null;
     private boolean email_verified;
     private String sub;
 
@@ -32,6 +33,14 @@ public class User {
 
     public String getGiven_name() {
         return given_name;
+    }
+
+    public Integer getAverageWPM() {
+        return averageWPM;
+    }
+
+    public void setAverageWPM(Integer averageWPM) {
+        this.averageWPM = averageWPM;
     }
 
     public String getFamily_name() {
