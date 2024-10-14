@@ -12,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
 
 import java.net.URI;
 import java.util.Comparator;
@@ -24,7 +26,7 @@ public class TypingTestService {
 
 
     public TypingTestDTO getTest(Long id, Jwt jwt) {
-        var test = repository.findById(id).orElseThrow();
+        var test = repository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Typing test not found"));
         var testDTO = new TypingTestDTO(test);
         if (jwt != null) {
             String username = jwt.getClaim("username");

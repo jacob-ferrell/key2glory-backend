@@ -13,16 +13,12 @@ public class Initializer implements CommandLineRunner {
     private TypingTestRepository typingTestRepository;
     @Override
     public void run(String... args) throws Exception {
+        if (!typingTestRepository.findAll().isEmpty()) { return; }
         var test1 = new TypingTest("The quick red fox jumps over the lazy dog with lightning speed, creating a spectacle of elegance and skill.", TypingTestType.GENERAL);
-        var test2 = new TypingTest("asdf", TypingTestType.NUMBERS);
-        var test3 = new TypingTest("Typing is a skill that many people use every day. Being able to type quickly and accurately can make a big difference in productivity. Whether you are writing a paper, sending an email, or working on a project, typing skills can save you time. Practicing your typing regularly is one of the best ways to improve your speed. It is also important to focus on accuracy as much as speed. Typing quickly is useful, but it is even better when you can avoid making mistakes. Keeping your hands in the right position and using all of your fingers is key to developing good typing habits. " + 
-                        "With consistent practice, anyone can improve their typing skills. Start by typing slowly and focusing on hitting the right keys. Gradually, as you become more comfortable, you can increase your speed. Remember to keep your posture correct and take breaks to avoid strain. Typing tests like this one are a great way to measure progress and see how fast you can go. The more you practice, the better you will become at typing smoothly and efficiently. Keep challenging yourself to get faster while maintaining accuracy, and soon you will see a big improvement.", TypingTestType.GENERAL);
+        var test2 = new TypingTest("In the year 2024, the global population is estimated to reach 8.05 billion. The average human lifespan has increased to 73.4 years, while the world's gross domestic product (GDP) is projected to be around $105 trillion. By 2030, over 75% of the world's population is expected to have access to the internet. In a recent study, 64% of respondents said they spend more than 5 hours per day on digital devices. Additionally, the global smartphone market is expected to sell around 1.5 billion units annually, with an average price of $325 per device.", TypingTestType.NUMBERS);
+        var test3 = new TypingTest("@Home! The total cost of groceries is $50.75, and I found some great deals: 20% off on fresh fruits, and 10% off on cleaning supplies. Don't forget to check out the new arrivals in the #Sale section! To celebrate, we’ll have pizza (with extra cheese!) and dessert: chocolate cake, cookies, & ice cream. Remember, life is too short to skip dessert! So, let’s enjoy every delicious bite while we stay safe and healthy!", TypingTestType.SPECIAL_CHARACTERS);
         typingTestRepository.save(test1);
         typingTestRepository.save(test2);
         typingTestRepository.save(test3);
-        for (int i = 0; i < 20; i++) {
-           var test = new TypingTest("asdf", TypingTestType.NUMBERS);
-           typingTestRepository.save(test);
-        }
     }
 }
