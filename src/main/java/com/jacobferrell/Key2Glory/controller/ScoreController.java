@@ -15,7 +15,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping(path= "api")
-@CrossOrigin(origins = "https://key2glory.jacobferrell.net", allowedHeaders = "*")
 public class ScoreController {
     @Autowired
     private ScoreService service;
