@@ -32,7 +32,7 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5174", "http://localhost:8080"));
+        configuration.setAllowedOrigins(Arrays.asList("https://key2glory.jacobferrell.net", "http://localhost:8080", "http://localhost:5174"));
         configuration.setAllowCredentials(true);
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
         configuration.setAllowedMethods(Arrays.asList("GET","POST", "PUT", "DELETE"));
@@ -48,7 +48,7 @@ public class SecurityConfig {
         return http
                 .httpBasic(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(PathRequest.toH2Console(), mvcMatcherBuilder.pattern("/api/private/**")).authenticated()
+                        .requestMatchers(mvcMatcherBuilder.pattern("/api/private/**")).authenticated()
                         .anyRequest().permitAll())
                 .cors(Customizer.withDefaults())
                 .oauth2ResourceServer(oauth2 -> oauth2

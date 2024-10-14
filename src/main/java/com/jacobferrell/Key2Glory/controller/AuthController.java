@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping(path= "api")
-@CrossOrigin(origins = "http://localhost:5174", allowedHeaders = "*")
+@CrossOrigin(origins = "https://key2glory.jacobferrell.net", allowedHeaders = "*")
 public class AuthController {
     @GetMapping("/public/hello")
     public String hello() {

@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -15,4 +16,7 @@ import java.util.Optional;
 public interface TypingTestRepository extends JpaRepository<TypingTest, Long> {
     Page<TypingTest> findByType(TypingTestType type, Pageable pageable);
     Page<TypingTest> findAll(Specification<TypingTest> spec, Pageable pageable);
+
+    @Query("SELECT t FROM TypingTest t WHERE t.createdBy = :username")
+    List<TypingTest> findByCreator(String username);
 }
