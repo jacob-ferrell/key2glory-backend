@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(path= "api")
-@CrossOrigin(origins = "https://key2glory.jacobferrell.net", allowedHeaders = "*")
 public class RatingController {
     @Autowired
     private RatingService service;

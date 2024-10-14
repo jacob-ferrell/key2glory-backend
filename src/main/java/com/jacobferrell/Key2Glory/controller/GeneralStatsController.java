@@ -14,7 +14,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 
 @RestController
 @RequestMapping(path= "api")
-@CrossOrigin(origins = "https://key2glory.jacobferrell.net", allowedHeaders = "*")
 public class GeneralStatsController {
     @Autowired
     GeneralStatsService service;
