@@ -11,7 +11,7 @@
 	<groupId>com.jacob-ferrell</groupId>
 	<artifactId>Key2Glory</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<packaging>war</packaging>
+	<packaging>jar</packaging>
 	<name>Key2Glory</name>
 	<description>Key2Glory API</description>
 	<properties>
@@ -65,7 +65,6 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-tomcat</artifactId>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
