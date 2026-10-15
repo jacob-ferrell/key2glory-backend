@@ -18,21 +18,20 @@ public class GeneralStatsService {
     public GeneralStats getGeneralStats(Jwt jwt) {
         String username = jwt.getClaim("username");
 
-        // Handle potential null or empty cases with default values
         Double averageWPM = scoreRepository.findAverageWpmByUsername(username);
         Double highestWPM = scoreRepository.findMaxWpmByUsername(username);
         Double averageAccuracy = scoreRepository.findAverageAccuracyByUsername(username);
 
-        // Use 0 if the user hasn't taken any tests
-        averageWPM = (averageWPM != null) ? averageWPM : 0.0;
-        highestWPM = (highestWPM != null) ? highestWPM : 0.0;
-        averageAccuracy = (averageAccuracy != null) ? averageAccuracy : 0.0;
+        // Aggregates are null if the user hasn't taken any tests
+        return new GeneralStats(
+                round(averageWPM),
+                round(highestWPM),
+                round(averageAccuracy),
+                (int) scoreRepository.countByUsername(username),
+                (int) testRepository.countByCreatedBy(username));
+    }
 
-        // Check the number of tests completed and contributed, default to 0 if none
-        int testsCompleted = scoreRepository.findByUser(username).size();
-        int testsContributed = testRepository.findByCreator(username).size();
-
-        // Return the GeneralStats object with the calculated or default values
-        return new GeneralStats(averageWPM, highestWPM, averageAccuracy, testsCompleted, testsContributed);
+    private static double round(Double value) {
+        return value == null ? 0.0 : Math.round(value * 100) / 100.0;
     }
 }

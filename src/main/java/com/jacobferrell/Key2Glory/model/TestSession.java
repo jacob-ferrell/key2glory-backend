@@ -1,6 +1,5 @@
 package com.jacobferrell.Key2Glory.model;
 
-import com.jacobferrell.Key2Glory.util.DateTime;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -18,26 +17,16 @@ public class TestSession {
     @JoinColumn(name="typing_test_id", nullable=false)
     private TypingTest typingTest;
 
+    // Client-reported times (ms since epoch), used for precise timing
     @Column(name="start_time")
     private Long startTime;
     @Column(name="end_time")
     private Long endTime;
+    // Server clock when the session started, used to sanity check the client-reported duration
+    @Column(name="server_start_time")
+    private Long serverStartTime;
     @Column(name="missed_characters")
     private List<Character> missedCharacters;
-
-    public TestSession(TypingTest typingTest, String username) {
-        this.typingTest = typingTest;
-        this.username = username;
-        this.startTime = new DateTime().toMillis();
-    }
-    public TestSession(Long endTime, List<Character> missedCharacters) {
-        this.startTime = 0L;
-        this.endTime = endTime;
-        this.missedCharacters = missedCharacters;
-    }
-    public TestSession(Long startTime) {
-        this.startTime = startTime;
-    }
 
     public TestSession() {
 
@@ -51,12 +40,12 @@ public class TestSession {
         return startTime;
     }
 
-    public void setStartTime(Long startTime) {
-        this.startTime = startTime;
-    }
-
     public Long getEndTime() {
         return endTime;
+    }
+
+    public Long getServerStartTime() {
+        return serverStartTime;
     }
 
     public String getUsername() {
@@ -86,8 +75,14 @@ public class TestSession {
     public void setTypingTest(TypingTest typingTest) {
         this.typingTest = typingTest;
     }
+
+    public boolean isCompleted() {
+        return endTime != null;
+    }
+
     public void restartSession(Long startTime) {
         this.startTime = startTime;
+        this.serverStartTime = System.currentTimeMillis();
         this.endTime = null;
         this.missedCharacters = new ArrayList<>();
     }

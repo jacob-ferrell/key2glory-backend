@@ -39,7 +39,7 @@ public class TestSessionDTO {
         return endTime;
     }
 
-    public List<Character> getMissedCharcters() {
+    public List<Character> getMissedCharacters() {
         return missedCharacters;
     }
 }
