@@ -8,5 +8,6 @@ import java.util.Optional;
 
 @Repository
 public interface MissedCharactersRepository extends JpaRepository<MissedCharacters, Long> {
-    Optional<MissedCharacters> findByUsername(String username);
+    // findFirst: concurrent first completions could have created more than one row per user
+    Optional<MissedCharacters> findFirstByUsernameOrderByIdAsc(String username);
 }

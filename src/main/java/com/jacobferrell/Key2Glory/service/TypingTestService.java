@@ -77,7 +77,7 @@ public class TypingTestService {
                     .findFirstByTypingTestIdAndUsernameOrderByOverallScoreDesc(test.getId(), username)
                     .map(ScoreDTO::new)
                     .orElse(null));
-            testDTO.setFavorited(favoritesRepository.findByUsername(username)
+            testDTO.setFavorited(favoritesRepository.findFirstByUsernameOrderByIdAsc(username)
                     .map(favorites -> favorites.contains(test.getId()))
                     .orElse(false));
         }
@@ -102,7 +102,7 @@ public class TypingTestService {
 
     @Transactional(readOnly = true)
     public Page<TypingTestDTO> getTests(TypingTestSortAndFilterDTO params, String username) {
-        Set<Long> favoriteIds = username == null ? Set.of() : favoritesRepository.findByUsername(username)
+        Set<Long> favoriteIds = username == null ? Set.of() : favoritesRepository.findFirstByUsernameOrderByIdAsc(username)
                 .map(favorites -> favorites.getFavorites().stream().map(TypingTest::getId).collect(Collectors.toSet()))
                 .orElse(Set.of());
         return repository.findAll(params.createSpecification(), params.getPageRequest()).map(test -> {

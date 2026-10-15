@@ -136,10 +136,6 @@ public class TypingTest {
         return scoresCount == null ? 0L : scoresCount;
     }
 
-    public void incrementScoresCount() {
-        this.scoresCount = getScoresCount() + 1;
-    }
-
     public String getCreatedBy() {
         return createdBy;
     }
