@@ -50,7 +50,7 @@ public class TypingTestController {
     ) {
         String username = jwt == null ? null : jwt.getClaim("username");
         var params = new TypingTestSortAndFilterDTO(creators, types, sort, order, mine, query, username, page, size);
-        return ResponseEntity.ok().body(service.getTests(params));
+        return ResponseEntity.ok().body(service.getTests(params, username));
     }
     @PostMapping("/private/typing-test")
     public ResponseEntity<?> createTypingTest(

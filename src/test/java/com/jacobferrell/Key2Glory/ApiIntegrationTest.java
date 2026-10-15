@@ -161,6 +161,7 @@ class ApiIntegrationTest {
         var mine = perform(get("/api/public/typing-test?mine=FAVORITES").with(user(alice)), 200);
         assertEquals(1, mine.get("totalElements").asInt());
         assertEquals(id, mine.get("content").get(0).get("id").asLong());
+        assertTrue(mine.get("content").get(0).get("favorited").asBoolean());
 
         perform(delete("/api/private/favorites/" + id).with(user(alice)), 200);
         assertEquals(0, perform(get("/api/private/favorites").with(user(alice)), 200).size());
