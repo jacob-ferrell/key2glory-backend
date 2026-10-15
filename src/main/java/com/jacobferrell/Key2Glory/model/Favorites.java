@@ -1,6 +1,5 @@
 package com.jacobferrell.Key2Glory.model;
 
-import com.jacobferrell.Key2Glory.dto.FavoritesDTO;
 import jakarta.persistence.*;
 
 import java.util.HashSet;
@@ -13,7 +12,12 @@ public class Favorites {
     private Long id;
     @Column(name="username")
     private String username;
-    @OneToMany(mappedBy="favorites", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // Many-to-many: the same test can be in any number of users' favorites
+    @ManyToMany
+    @JoinTable(
+            name = "favorites_typing_tests",
+            joinColumns = @JoinColumn(name = "favorites_id"),
+            inverseJoinColumns = @JoinColumn(name = "typing_test_id"))
     private final Set<TypingTest> favorites = new HashSet<>();
     public Favorites() {}
 
@@ -34,14 +38,16 @@ public class Favorites {
     }
 
     public void addFavorite(TypingTest typingTest) {
-        this.favorites.add(typingTest);
+        if (!contains(typingTest.getId())) {
+            this.favorites.add(typingTest);
+        }
     }
 
-    public FavoritesDTO toDTO() {
-        return new FavoritesDTO(this);
+    public void removeFavorite(Long typingTestId) {
+        this.favorites.removeIf(test -> test.getId().equals(typingTestId));
     }
 
-    public void removeFavorite(TypingTest typingTest) {
-        this.favorites.remove(typingTest);
+    public boolean contains(Long typingTestId) {
+        return favorites.stream().anyMatch(test -> test.getId().equals(typingTestId));
     }
 }

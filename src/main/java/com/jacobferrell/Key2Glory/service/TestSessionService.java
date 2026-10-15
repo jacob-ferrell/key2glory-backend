@@ -5,99 +5,108 @@ import com.jacobferrell.Key2Glory.dto.TestSessionDTO;
 import com.jacobferrell.Key2Glory.model.*;
 import com.jacobferrell.Key2Glory.repository.MissedCharactersRepository;
 import com.jacobferrell.Key2Glory.repository.ScoreRepository;
+import com.jacobferrell.Key2Glory.repository.TestSessionRepository;
 import com.jacobferrell.Key2Glory.repository.TypingTestRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Transactional
 public class TestSessionService {
+    /**
+     * How far the client-reported duration may fall short of what the server observed between
+     * the start and complete requests. Covers differences in request latency; anything shorter
+     * is treated as a tampered start/end time and the server-observed duration is used instead.
+     */
+    static final long DURATION_TOLERANCE_MS = 3000;
+
     @Autowired
     private TypingTestRepository repository;
+    @Autowired
+    private TestSessionRepository sessionRepository;
     @Autowired
     private ScoreRepository scoreRepository;
     @Autowired
     MissedCharactersRepository missedCharactersRepository;
 
     public ResponseEntity<?> createTestSession(Long id, Jwt jwt, TestSession newSession) {
-        if (jwt == null) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(ErrorMessage.from("Must be logged in to create a test session"));
-        }
         String username = jwt.getClaim("username");
-        TypingTest test = repository.findById(id).orElseThrow();
-        List<TestSession> sessions = test.getSessions();
-        TestSession existingSession = sessions.stream().filter(session -> session.getUsername().equals(username)).findFirst().orElse(null);
-        if (existingSession != null) {
-            return restartSession(test, existingSession, newSession.getStartTime());
+        TypingTest test = findTest(id);
+        Long startTime = newSession.getStartTime() == null ? System.currentTimeMillis() : newSession.getStartTime();
+        var existingSession = sessionRepository.findFirstByTypingTestIdAndUsernameOrderByIdDesc(id, username);
+        if (existingSession.isPresent()) {
+            var session = existingSession.get();
+            session.restartSession(startTime);
+            return ResponseEntity.ok().body(new TestSessionDTO(sessionRepository.save(session)));
         }
-        System.out.println(newSession.getStartTime() + "!!!!!!!\n");
-        newSession.setTypingTest(test);
-        newSession.setUsername(username);
-        sessions.add(newSession);
-        test.setSessions(sessions);
-        repository.save(test);
-        return ResponseEntity.created(URI.create("/api/private/typing-test/" + test.getId() + "/session")).body(new TestSessionDTO(newSession));
-    }
-
-    public ResponseEntity<?> getTestSession(Long id, Jwt jwt) {
-        if (jwt == null) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(ErrorMessage.from("Must be logged in to view test sessions"));
-        }
-        String username = jwt.getClaim("username");
-        TypingTest test = repository.findById(id).orElseThrow();
-        TestSession session = test.getSessions().stream().filter(s -> s.getUsername().equals(username)).findFirst().orElseThrow();
-        return ResponseEntity.ok().body(new TestSessionDTO(session));
-    }
-
-    public ResponseEntity<TestSessionDTO> restartSession(TypingTest test, TestSession session, Long startTime) {
+        var session = new TestSession();
+        session.setTypingTest(test);
+        session.setUsername(username);
         session.restartSession(startTime);
-        repository.save(test);
-        return ResponseEntity.ok().body(new TestSessionDTO(session));
+        sessionRepository.save(session);
+        return ResponseEntity.created(URI.create("/api/private/typing-test/" + test.getId() + "/session")).body(new TestSessionDTO(session));
+    }
+
+    @Transactional(readOnly = true)
+    public ResponseEntity<?> getTestSession(Long id, Jwt jwt) {
+        return ResponseEntity.ok().body(new TestSessionDTO(findSession(id, jwt.getClaim("username"))));
     }
 
     public ResponseEntity<?> completeSession(Long id, Jwt jwt, TestSession session) {
-        if (jwt == null) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(ErrorMessage.from("Must be logged in to complete a test session"));
-        }
         String username = jwt.getClaim("username");
-        var test = repository.findById(id).orElseThrow();
-        var existingSession = test.getSessions().stream().filter(s -> s.getUsername().equals(username)).findFirst().orElseThrow();
-        updateExistingSession(existingSession, session);
-        updateUserMissedCharacters(session.getMissedCharacters(), username);
-        return ResponseEntity.ok().body(updateScores(test, existingSession));
-    }
-    private void updateUserMissedCharacters(List<Character> missedCharacters, String username) {
-        MissedCharacters userMissedCharacters = missedCharactersRepository.findByUsername(username).orElse(null);
-        if (userMissedCharacters == null) {
-            var newMissedCharacters = new MissedCharacters(username, missedCharacters);
-            missedCharactersRepository.save(newMissedCharacters);
-            return;
+        var existingSession = findSession(id, username);
+        if (existingSession.isCompleted()) {
+            // Prevents the same run from being submitted (and scored) more than once
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "This test session has already been completed");
         }
+        if (session.getEndTime() == null || session.getEndTime() <= existingSession.getStartTime()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "End time must be after the session's start time");
+        }
+        List<Character> missedCharacters = session.getMissedCharacters() == null ? new ArrayList<>() : session.getMissedCharacters();
+        existingSession.setEndTime(session.getEndTime());
+        existingSession.setMissedCharacters(missedCharacters);
+        updateUserMissedCharacters(missedCharacters, username);
+        var score = new Score(existingSession, getValidatedDuration(existingSession, System.currentTimeMillis()));
+        scoreRepository.save(score);
+        var test = existingSession.getTypingTest();
+        test.incrementScoresCount();
+        repository.save(test);
+        return ResponseEntity.ok().body(new ScoreDTO(score));
+    }
+
+    static long getValidatedDuration(TestSession session, long serverNow) {
+        long clientDuration = session.getEndTime() - session.getStartTime();
+        if (session.getServerStartTime() == null) {
+            // Session started before server-side timing was recorded
+            return clientDuration;
+        }
+        long serverDuration = serverNow - session.getServerStartTime();
+        return Math.max(clientDuration, serverDuration - DURATION_TOLERANCE_MS);
+    }
+
+    private void updateUserMissedCharacters(List<Character> missedCharacters, String username) {
+        MissedCharacters userMissedCharacters = missedCharactersRepository.findByUsername(username)
+                .orElseGet(() -> new MissedCharacters(username, List.of()));
         userMissedCharacters.addMissedCharacters(missedCharacters);
         missedCharactersRepository.save(userMissedCharacters);
     }
-    private void updateExistingSession(TestSession existingSession, TestSession newSession) {
-        existingSession.setEndTime(newSession.getEndTime());
-        existingSession.setMissedCharacters(newSession.getMissedCharacters());
-    }
-    private ScoreDTO updateScores(TypingTest test, TestSession existingSession) {
-        var score = new Score(existingSession);
-        var scores = test.getScores();
-        scores.add(score);
-        test.setScoresCount((long) scores.size());
-        scoreRepository.save(score);
-        repository.save(test);
-        return new ScoreDTO(score);
+
+    private TypingTest findTest(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Typing test not found"));
     }
 
+    private TestSession findSession(Long id, String username) {
+        return sessionRepository.findFirstByTypingTestIdAndUsernameOrderByIdDesc(id, username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No session found for this test"));
+    }
 }

@@ -1,9 +1,7 @@
 package com.jacobferrell.Key2Glory.controller;
 
-import com.jacobferrell.Key2Glory.dto.TestRatingDTO;
 import com.jacobferrell.Key2Glory.model.TestRating;
 import com.jacobferrell.Key2Glory.service.RatingService;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
