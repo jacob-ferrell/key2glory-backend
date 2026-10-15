@@ -15,7 +15,7 @@ public class MissedCharactersService {
     MissedCharactersRepository repository;
     public ResponseEntity<?> getMissedCharacters(Jwt jwt) {
         String username = jwt.getClaim("username");
-        var missedCharacters = repository.findByUsername(username).orElse(new MissedCharacters(username, Collections.emptyList()));
+        var missedCharacters = repository.findFirstByUsernameOrderByIdAsc(username).orElse(new MissedCharacters(username, Collections.emptyList()));
         return ResponseEntity.ok().body(missedCharacters);
     }
 }

@@ -63,7 +63,8 @@ public class TestSessionService {
 
     public ResponseEntity<?> completeSession(Long id, Jwt jwt, TestSession session) {
         String username = jwt.getClaim("username");
-        var existingSession = findSession(id, username);
+        var existingSession = sessionRepository.findFirstForUpdateByTypingTestIdAndUsernameOrderByIdDesc(id, username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No session found for this test"));
         if (existingSession.isCompleted()) {
             // Prevents the same run from being submitted (and scored) more than once
             throw new ResponseStatusException(HttpStatus.CONFLICT, "This test session has already been completed");
@@ -77,9 +78,7 @@ public class TestSessionService {
         updateUserMissedCharacters(missedCharacters, username);
         var score = new Score(existingSession, getValidatedDuration(existingSession, System.currentTimeMillis()));
         scoreRepository.save(score);
-        var test = existingSession.getTypingTest();
-        test.incrementScoresCount();
-        repository.save(test);
+        repository.incrementScoresCount(existingSession.getTypingTest().getId());
         return ResponseEntity.ok().body(new ScoreDTO(score));
     }
 
@@ -94,7 +93,7 @@ public class TestSessionService {
     }
 
     private void updateUserMissedCharacters(List<Character> missedCharacters, String username) {
-        MissedCharacters userMissedCharacters = missedCharactersRepository.findByUsername(username)
+        MissedCharacters userMissedCharacters = missedCharactersRepository.findFirstByUsernameOrderByIdAsc(username)
                 .orElseGet(() -> new MissedCharacters(username, List.of()));
         userMissedCharacters.addMissedCharacters(missedCharacters);
         missedCharactersRepository.save(userMissedCharacters);

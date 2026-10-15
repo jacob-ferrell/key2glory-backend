@@ -133,6 +133,37 @@ class ApiIntegrationTest {
     }
 
     @Test
+    void simultaneousCompletionsScoreTheRunOnce() throws Exception {
+        String alice = uniqueUser();
+        long id = createTest(alice, "two requests racing to complete one run", "GENERAL");
+        long now = System.currentTimeMillis();
+        startSession(alice, id, now - 5_000);
+
+        var statuses = java.util.Collections.synchronizedList(new java.util.ArrayList<Integer>());
+        var start = new java.util.concurrent.CountDownLatch(1);
+        var threads = new java.util.ArrayList<Thread>();
+        for (int i = 0; i < 2; i++) {
+            var thread = new Thread(() -> {
+                try {
+                    start.await();
+                    statuses.add(mvc.perform(put("/api/private/typing-test/" + id + "/session").with(user(alice))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"endTime\":" + now + ",\"missedCharacters\":[]}")).andReturn().getResponse().getStatus());
+                } catch (Exception e) {
+                    statuses.add(-1);
+                }
+            });
+            thread.start();
+            threads.add(thread);
+        }
+        start.countDown();
+        for (Thread thread : threads) thread.join();
+
+        assertEquals(java.util.List.of(200, 409), statuses.stream().sorted().toList());
+        assertEquals(1, perform(get("/api/public/typing-test/" + id), 200).get("scoresCount").asInt());
+    }
+
+    @Test
     void createRejectsInvalidLengthAndIgnoresClientControlledFields() throws Exception {
         String bob = uniqueUser();
         perform(post("/api/private/typing-test").with(user(bob))

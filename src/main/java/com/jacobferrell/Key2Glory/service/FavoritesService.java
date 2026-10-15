@@ -26,7 +26,7 @@ public class FavoritesService {
     @Transactional(readOnly = true)
     public List<TypingTestDTO> getFavorites(Jwt jwt) {
         String username = jwt.getClaim("username");
-        return repository.findByUsername(username)
+        return repository.findFirstByUsernameOrderByIdAsc(username)
                 .map(this::toDTOs)
                 .orElse(List.of());
     }
@@ -35,7 +35,7 @@ public class FavoritesService {
         String username = jwt.getClaim("username");
         var testToAdd = typingTestRepository.findById(testId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Typing test not found"));
-        var favorites = repository.findByUsername(username).orElseGet(() -> new Favorites(username));
+        var favorites = repository.findFirstByUsernameOrderByIdAsc(username).orElseGet(() -> new Favorites(username));
         favorites.addFavorite(testToAdd);
         repository.save(favorites);
         return toDTOs(favorites);
@@ -43,7 +43,7 @@ public class FavoritesService {
 
     public List<TypingTestDTO> removeFromFavorites(Jwt jwt, Long testId) {
         String username = jwt.getClaim("username");
-        return repository.findByUsername(username)
+        return repository.findFirstByUsernameOrderByIdAsc(username)
                 .map(favorites -> {
                     favorites.removeFavorite(testId);
                     return toDTOs(repository.save(favorites));
