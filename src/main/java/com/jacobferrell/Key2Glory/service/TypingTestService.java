@@ -21,6 +21,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 
 import java.net.URI;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Service
@@ -99,8 +101,17 @@ public class TypingTestService {
     }
 
     @Transactional(readOnly = true)
-    public Page<TypingTestDTO> getTests(TypingTestSortAndFilterDTO params) {
-        return repository.findAll(params.createSpecification(), params.getPageRequest()).map(TypingTestDTO::new);
+    public Page<TypingTestDTO> getTests(TypingTestSortAndFilterDTO params, String username) {
+        Set<Long> favoriteIds = username == null ? Set.of() : favoritesRepository.findByUsername(username)
+                .map(favorites -> favorites.getFavorites().stream().map(TypingTest::getId).collect(Collectors.toSet()))
+                .orElse(Set.of());
+        return repository.findAll(params.createSpecification(), params.getPageRequest()).map(test -> {
+            var dto = new TypingTestDTO(test);
+            if (username != null) {
+                dto.setFavorited(favoriteIds.contains(test.getId()));
+            }
+            return dto;
+        });
     }
 
     @Transactional
